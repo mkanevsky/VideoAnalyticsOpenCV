@@ -11,6 +11,7 @@ import time
 
 import VideoStream
 from VideoStream import VideoStream
+import AnalyzeFrame
 
 class CameraCapture(object):
 
@@ -84,6 +85,7 @@ class CameraCapture(object):
         self.displayFrame = None
 
     def __sendFrameForProcessing(self, frame):
+        AnalyzeFrame.AnalyzeFrame(frame)
 
         # Endpoint URL
         apim_key = self.cognitiveServiceKey
@@ -98,7 +100,6 @@ class CameraCapture(object):
             'Content-Type': 'image/jpeg',
             'Ocp-Apim-Subscription-Key': apim_key,
         }
-
 
         try:
             print(post_url)

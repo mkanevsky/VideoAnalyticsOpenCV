@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "C:\\Users\\gubert\\AppData\\Local\\Continuum\\anaconda3\\python.exe"
+    "python.pythonPath": "/data/anaconda/envs/py35/bin/python"
+    
 }

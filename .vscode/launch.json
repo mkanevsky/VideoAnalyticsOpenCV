@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    // Next lines for backup (old service):
+    // "COMPUTER_VISION_SUBSCRIPTION_KEY": "a0fc35f3a5044534a65010f646172a48",
+    // "COMPUTER_VISION_ENDPOINT": "https://cv-rambam-test.cognitiveservices.azure.com/",
+    // "IMAGE_PROCESSING_ENDPOINT": "https://cv-rambam-test.cognitiveservices.azure.com/"
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": {"VIDEO_PATH": "/data/home/avihay/VideoAnalyticsOpenCV/videos/mindray_black.mp4", "VERBOSE": "True", 
+                "COMPUTER_VISION_SUBSCRIPTION_KEY": "cbe7aef3210148f5b18d4cf4f4fe0c46",
+                "COMPUTER_VISION_ENDPOINT": "https://rstreamcomputervisionservice.cognitiveservices.azure.com/",
+                "IMAGE_PROCESSING_ENDPOINT": "https://rstreamcomputervisionservice.cognitiveservices.azure.com/"
+            }
+        }
+    ]
+}
