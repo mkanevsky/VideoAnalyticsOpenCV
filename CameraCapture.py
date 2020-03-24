@@ -12,6 +12,10 @@ import time
 import VideoStream
 from VideoStream import VideoStream
 import AnalyzeFrame
+import AnnotationParser
+from AnnotationParser import AnnotationParser
+import ImageServer
+from ImageServer import ImageServer
 
 class CameraCapture(object):
 
@@ -83,6 +87,17 @@ class CameraCapture(object):
             print()
         
         self.displayFrame = None
+        if self.showVideo:
+            self.imageServer = ImageServer(5012, self)
+            self.imageServer.start()
+
+    def __annotate(self, frame, response):
+        AnnotationParserInstance = AnnotationParser()
+        #TODO: Make the choice of the service configurable
+        listOfRectanglesToDisplay = AnnotationParserInstance.getCV2RectanglesFromProcessingService1(response)
+        for rectangle in listOfRectanglesToDisplay:
+            cv2.rectangle(frame, (rectangle(0), rectangle(1)), (rectangle(2), rectangle(3)), (0,0,255),4)
+        return
 
     def __sendFrameForProcessing(self, frame):
         AnalyzeFrame.AnalyzeFrame(frame)
@@ -259,4 +274,5 @@ class CameraCapture(object):
         if not self.isWebcam:
             self.capture.release()
         if self.showVideo:
+            self.imageServer.close()
             cv2.destroyAllWindows()

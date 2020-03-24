@@ -62,14 +62,7 @@ def __convertStringToBool(env):
 
 if __name__ == '__main__':
     try:
-        VIDEO_PATH = sys.argv[1]
-        print(VIDEO_PATH)
-        # VIDEO_PATH = "rtsp://51.105.240.126:1935//rmbmnopw//Avihay_160p"
-        os.environ["VIDEO_PATH"] = VIDEO_PATH
-        os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"] = "cbe7aef3210148f5b18d4cf4f4fe0c46"
-        os.environ["COMPUTER_VISION_ENDPOINT"] = "https://rstreamcomputervisionservice.cognitiveservices.azure.com/"
-        os.environ["IMAGE_PROCESSING_ENDPOINT"] = "bla"
-        # VIDEO_PATH = os.environ['VIDEO_PATH']
+        VIDEO_PATH = os.environ['VIDEO_PATH']
         IMAGE_PROCESSING_ENDPOINT = os.getenv('IMAGE_PROCESSING_ENDPOINT', "")
         IMAGE_PROCESSING_PARAMS = os.getenv('IMAGE_PROCESSING_PARAMS', "")
         SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'False'))
