@@ -6,18 +6,22 @@
     // "COMPUTER_VISION_SUBSCRIPTION_KEY": "a0fc35f3a5044534a65010f646172a48",
     // "COMPUTER_VISION_ENDPOINT": "https://cv-rambam-test.cognitiveservices.azure.com/",
     // "IMAGE_PROCESSING_ENDPOINT": "https://cv-rambam-test.cognitiveservices.azure.com/"
+    // "VIDEO_PATH": "/data/home/avihay/VideoAnalyticsOpenCV/videos/mindray_black.mp4"
+    // "VIDEO_PATH": "rtsp://51.105.240.126:1935/rmbmnopw/Avihay_160p"
     "version": "0.2.0",
     "configurations": [
+        
         {
             "name": "Python: Current File",
             "type": "python",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "env": {"VIDEO_PATH": "/data/home/avihay/VideoAnalyticsOpenCV/videos/mindray_black.mp4", "VERBOSE": "True", 
-                "COMPUTER_VISION_SUBSCRIPTION_KEY": "cbe7aef3210148f5b18d4cf4f4fe0c46",
-                "COMPUTER_VISION_ENDPOINT": "https://rstreamcomputervisionservice.cognitiveservices.azure.com/",
-                "IMAGE_PROCESSING_ENDPOINT": "https://rstreamcomputervisionservice.cognitiveservices.azure.com/"
+            "env": {"VIDEO_PATH": "rtsp://51.105.240.126:1935//rmbmnopw//Avihay_160p", 
+                    "VERBOSE": "True", 
+                    "COMPUTER_VISION_SUBSCRIPTION_KEY": "cbe7aef3210148f5b18d4cf4f4fe0c46",
+                    "COMPUTER_VISION_ENDPOINT": "https://rstreamcomputervisionservice.cognitiveservices.azure.com/",
+                    "IMAGE_PROCESSING_ENDPOINT": "bla"
             }
         }
     ]

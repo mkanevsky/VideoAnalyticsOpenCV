@@ -10,6 +10,9 @@ from PIL import Image
 import sys
 import time
 import io
+import json
+import requests
+import re
 
 #TODO: incorporate along the way:
 # os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"] = "a0fc35f3a5044534a65010f646172a48"
@@ -22,6 +25,7 @@ def AnalyzeFrame(frame):
     computervision_client = ComputerVisionClient(COMPUTER_VISION_ENDPOINT, CognitiveServicesCredentials(COMPUTER_VISION_SUBSCRIPTION_KEY))
 
     recognize_printed_results = computervision_client.batch_read_file_in_stream(io.BytesIO(frame), raw=True)
+    # recognize_printed_results = computervision_client.batch_read_file_in_stream((frame), raw=True)
 
     # Reading OCR results
     operation_location_remote = recognize_printed_results.headers["Operation-Location"]
@@ -30,13 +34,23 @@ def AnalyzeFrame(frame):
         get_printed_text_results = computervision_client.get_read_operation_result(operation_id)
         if get_printed_text_results.status not in ['NotStarted', 'Running']:
                 break
-        time.sleep(1)
+        time.sleep(0.5)
 
+    data_dict = {}
+    i = 1
     if get_printed_text_results.status == TextOperationStatusCodes.succeeded:
         for text_result in get_printed_text_results.recognition_results:
                 for line in text_result.lines:
-                        print(line.text)
-                        print(line.bounding_box)
+                        # print("Measure: ", line.text, " | Sum xyz: ", sum(line.bounding_box))
+                        # print(sum(line.bounding_box))
+                        data_dict[i] = re.sub('[^0123456789./]', '', line.text)
+                        i = i + 1
+    data_json = json.dumps(data_dict)
+    data_string = "\"" + data_json + "\""
+    headers = {'Content-type': 'string'}
+    print(data_string)
+    # response = requests.post(url, data=data_string, headers=headers)
+
     # TODO: sanity check results (charecters etc.) and send them to somewhere
     return
 

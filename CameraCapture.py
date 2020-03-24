@@ -87,6 +87,7 @@ class CameraCapture(object):
     def __sendFrameForProcessing(self, frame):
         AnalyzeFrame.AnalyzeFrame(frame)
 
+        """
         # Endpoint URL
         apim_key = self.cognitiveServiceKey
         model_id = self.modelId
@@ -121,6 +122,8 @@ class CameraCapture(object):
             except Exception:
                 print("Response from external processing service (status code): " + str(response.status_code))
         return json.dumps(response.json())
+        """
+        return True
 
     def __displayTimeDifferenceInMs(self, endTime, startTime):
         return str(int((endTime-startTime) * 1000)) + " ms"
@@ -150,6 +153,9 @@ class CameraCapture(object):
 
             frameCounter +=1
             if self.isWebcam:
+            #     if frameCounter > 3:
+            #         for i in range(10):
+            #             self.vs.read()
                 frame = self.vs.read()
             else:
                 frame = self.capture.read()[1]
@@ -205,6 +211,7 @@ class CameraCapture(object):
                     startProcessingExternally = time.time()
 
                 #Send over HTTP for processing
+                # response = self.__sendFrameForProcessing(encodedFrame)
                 response = self.__sendFrameForProcessing(encodedFrame)
                 if self.verbose:
                     print("Time to process frame externally: " + self.__displayTimeDifferenceInMs(time.time(), startProcessingExternally))
