@@ -21,7 +21,7 @@
             {
                     //"VIDEO_PATH": "rtsp://guy:Password01!@192.168.1.6:554//h264Preview_01_sub", 
                     "VIDEO_PATH": "rtsp://51.105.240.126:1935//rmbmnopw//monitor1",
-                    "VERBOSE": "True", 
+                    "VERBOSE": "False", 
                     "COMPUTER_VISION_SUBSCRIPTION_KEY": "cbe7aef3210148f5b18d4cf4f4fe0c46",
                     "COMPUTER_VISION_ENDPOINT": "https://rstreamcomputervisionservice.cognitiveservices.azure.com/",
                     "IMAGE_PROCESSING_ENDPOINT": "bla",
