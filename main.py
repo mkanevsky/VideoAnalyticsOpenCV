@@ -63,6 +63,7 @@ def __convertStringToBool(env):
 if __name__ == '__main__':
     try:
         VIDEO_PATH = os.environ['VIDEO_PATH']
+        print("Vid Path", VIDEO_PATH)
         IMAGE_PROCESSING_ENDPOINT = os.getenv('IMAGE_PROCESSING_ENDPOINT', "")
         IMAGE_PROCESSING_PARAMS = os.getenv('IMAGE_PROCESSING_PARAMS', "")
         SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'False'))

@@ -1,4 +1,4 @@
 {
-    "python.pythonPath": "C:\\Users\\gubert\\.azureml\\envs\\myenv\\python.exe"
+    "python.pythonPath": "/data/anaconda/envs/py35/bin/python"
     
 }
