@@ -21,8 +21,8 @@ from VideoStream import VideoStream
 import AnalyzeFrame
 import AnnotationParser
 from AnnotationParser import AnnotationParser
-import ImageServer
-from ImageServer import ImageServer
+# import ImageServer
+# from ImageServer import ImageServer
 import AnalyzeMeasures
 
 class CameraCapture(object):

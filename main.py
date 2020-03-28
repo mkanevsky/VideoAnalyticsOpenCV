@@ -54,7 +54,7 @@ def main(
 
 
 def __convertStringToBool(env):
-    if env in ['True', 'TRUE', '1', 'y', 'YES', 'Y', 'Yes']:
+    if env in ['True', 'TRUE', '1', 'y', 'YES', 'Y', 'Yes', 'True']:
         return True
     elif env in ['False', 'FALSE', '0', 'n', 'NO', 'N', 'No']:
         return False
@@ -72,8 +72,7 @@ if __name__ == '__main__':
         SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'True'))
         VERBOSE = __convertStringToBool(os.getenv('VERBOSE', 'False'))
         LOOP_VIDEO = __convertStringToBool(os.getenv('LOOP_VIDEO', 'True'))
-        CONVERT_TO_GRAY = __convertStringToBool(
-            os.getenv('CONVERT_TO_GRAY', 'False'))
+        CONVERT_TO_GRAY = __convertStringToBool(os.getenv('CONVERT_TO_GRAY', 'False'))
         RESIZE_WIDTH = int(os.getenv('RESIZE_WIDTH', 0))
         RESIZE_HEIGHT = int(os.getenv('RESIZE_HEIGHT', 0))
         ANNOTATE = __convertStringToBool(os.getenv('ANNOTATE', 'False'))
