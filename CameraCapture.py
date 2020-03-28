@@ -8,6 +8,13 @@ import numpy
 import requests
 import json
 import time
+import os
+
+from azure.cognitiveservices.vision.computervision import ComputerVisionClient
+from azure.cognitiveservices.vision.computervision.models import TextOperationStatusCodes
+from azure.cognitiveservices.vision.computervision.models import TextRecognitionMode
+from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
+from msrest.authentication import CognitiveServicesCredentials
 
 import VideoStream
 from VideoStream import VideoStream
@@ -92,6 +99,10 @@ class CameraCapture(object):
             self.imageServer = ImageServer(5012, self)
             self.imageServer.start()
             # self.imageServer.run()
+        
+        COMPUTER_VISION_ENDPOINT = os.environ["COMPUTER_VISION_ENDPOINT"]
+        COMPUTER_VISION_SUBSCRIPTION_KEY = os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"]
+        self.computervision_client = ComputerVisionClient(COMPUTER_VISION_ENDPOINT, CognitiveServicesCredentials(COMPUTER_VISION_SUBSCRIPTION_KEY))
 
     def __annotate(self, frame, response):
         AnnotationParserInstance = AnnotationParser()
@@ -103,7 +114,7 @@ class CameraCapture(object):
 
     def __sendFrameForProcessing(self, frame):
         # AnalyzeMeasures.AnalyzeMeasures(frame)
-        AnalyzeFrame.AnalyzeFrame(frame)
+        AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client)
 
         """
         # Endpoint URL

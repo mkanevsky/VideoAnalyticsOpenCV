@@ -13,6 +13,9 @@ import io
 import json
 import requests
 import re
+import cv2
+import math
+import numpy as np
 
 
 def create_bounded_output(readings, boundings, boundries):
@@ -99,28 +102,11 @@ def get_digits(img, computervision_client):
         if get_printed_text_results.status not in ['NotStarted', 'Running']:
                 break
         time.sleep(0.1)
-
-    # string_dict = {}
-    # i = 1
-    # if get_printed_text_results.status == TextOperationStatusCodes.succeeded:
-    #     for text_result in get_printed_text_results.recognition_results:
-    #             for line in text_result.lines:
-    #             #        print(line.text)
-    #             #       print(line.bounding_box)
-    #                     s = re.sub('[^0123456789./]', '', line.text)
-    #                     if s != "":
-    #                         if s[0] == ".":
-    #                             s = s[1:]
-    #                         s = s.rstrip(".")
-    #                     else:
-    #                         continue
-    #                     string_dict[i] = s
-    #                     i += 1
     
     tmp_frame = cv2.imdecode(np.frombuffer(img, np.uint8), -1)
     results = []
     text_flag = False
-    show_frame_flag = True
+    show_frame_flag = False
     if get_printed_text_results.status == TextOperationStatusCodes.succeeded:
         for text_result in get_printed_text_results.recognition_results:
             for line in text_result.lines:
@@ -139,19 +125,17 @@ def get_digits(img, computervision_client):
             cv2.imshow("image", tmp_frame)
             cv2.waitKey(0)
     return(results)
-import cv2
-import math
-import numpy as np
+
 #TODO: incorporate along the way:
 # os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"] = "a0fc35f3a5044534a65010f646172a48"
 # os.environ["COMPUTER_VISION_ENDPOINT"] = "https://cv-rambam-test.cognitiveservices.azure.com/"
-def AnalyzeFrame(frame):
-    COMPUTER_VISION_ENDPOINT = os.environ["COMPUTER_VISION_ENDPOINT"]
-    COMPUTER_VISION_SUBSCRIPTION_KEY = os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"]
-    #TODO: get client as argument
-    computervision_client = ComputerVisionClient(COMPUTER_VISION_ENDPOINT, CognitiveServicesCredentials(COMPUTER_VISION_SUBSCRIPTION_KEY))
+def AnalyzeFrame(frame, computervision_client):
+    # COMPUTER_VISION_ENDPOINT = os.environ["COMPUTER_VISION_ENDPOINT"]
+    # COMPUTER_VISION_SUBSCRIPTION_KEY = os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"]
+    # #TODO: get client as argument
+    # computervision_client = ComputerVisionClient(COMPUTER_VISION_ENDPOINT, CognitiveServicesCredentials(COMPUTER_VISION_SUBSCRIPTION_KEY))
     frame = cv2.imdecode(np.frombuffer(frame, np.uint8), -1)
-    s =frame.shape
+    s = frame.shape
     # tmp = cv2.imencode(".jpg", frame)[1]
     # cv2.imwrite("try.jpg", tmp)
     y,x = s[0], s[1]
