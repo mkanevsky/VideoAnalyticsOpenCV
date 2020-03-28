@@ -49,7 +49,7 @@ class CameraCapture(object):
             cognitiveServiceKey="",
             modelId=""):
         self.videoPath = videoPath
-        if self.__IsInt(videoPath):
+        if not self.__IsInt(videoPath):
             #case of a usb camera (usually mounted at /dev/video* where * is an int)
             self.isWebcam = True
         else:
@@ -160,7 +160,8 @@ class CameraCapture(object):
     def __enter__(self):
         if self.isWebcam:
             #The VideoStream class always gives us the latest frame from the webcam. It uses another thread to read the frames.
-            self.vs = VideoStream(int(self.videoPath)).start()
+            # self.vs = VideoStream(int(self.videoPath)).start()
+            self.vs = VideoStream(self.videoPath).start()
             time.sleep(1.0)#needed to load at least one frame into the VideoStream class
             #self.capture = cv2.VideoCapture(int(self.videoPath))
         else:

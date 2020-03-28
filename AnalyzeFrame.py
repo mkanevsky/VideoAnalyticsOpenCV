@@ -106,7 +106,7 @@ def get_digits(img, computervision_client):
     tmp_frame = cv2.imdecode(np.frombuffer(img, np.uint8), -1)
     results = []
     text_flag = False
-    show_frame_flag = True
+    show_frame_flag = False
     if get_printed_text_results.status == TextOperationStatusCodes.succeeded:
         for text_result in get_printed_text_results.recognition_results:
             for line in text_result.lines:
