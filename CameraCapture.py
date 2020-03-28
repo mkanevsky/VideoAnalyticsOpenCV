@@ -114,8 +114,8 @@ class CameraCapture(object):
         return
 
     def __sendFrameForProcessing(self, frame):
-        # AnalyzeMeasures.AnalyzeMeasures(frame)
-        AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client)
+        # AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client)
+        AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
 
         """
         # Endpoint URL

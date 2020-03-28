@@ -128,8 +128,7 @@ def get_digits(img, computervision_client):
     return(results)
 
 #TODO: incorporate along the way:
-# os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"] = "a0fc35f3a5044534a65010f646172a48"
-# os.environ["COMPUTER_VISION_ENDPOINT"] = "https://cv-rambam-test.cognitiveservices.azure.com/"
+
 def AnalyzeFrame(frame, computervision_client):
     # COMPUTER_VISION_ENDPOINT = os.environ["COMPUTER_VISION_ENDPOINT"]
     # COMPUTER_VISION_SUBSCRIPTION_KEY = os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"]
