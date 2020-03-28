@@ -66,7 +66,7 @@ if __name__ == '__main__':
         print("Vid Path", VIDEO_PATH)
         IMAGE_PROCESSING_ENDPOINT = os.getenv('IMAGE_PROCESSING_ENDPOINT', "")
         IMAGE_PROCESSING_PARAMS = os.getenv('IMAGE_PROCESSING_PARAMS', "")
-        SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'False'))
+        SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'True'))
         VERBOSE = __convertStringToBool(os.getenv('VERBOSE', 'False'))
         LOOP_VIDEO = __convertStringToBool(os.getenv('LOOP_VIDEO', 'True'))
         CONVERT_TO_GRAY = __convertStringToBool(

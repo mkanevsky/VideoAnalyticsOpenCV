@@ -16,6 +16,7 @@ import AnnotationParser
 from AnnotationParser import AnnotationParser
 import ImageServer
 from ImageServer import ImageServer
+import AnalyzeMeasures
 
 class CameraCapture(object):
 
@@ -90,6 +91,7 @@ class CameraCapture(object):
         if self.showVideo:
             self.imageServer = ImageServer(5012, self)
             self.imageServer.start()
+            # self.imageServer.run()
 
     def __annotate(self, frame, response):
         AnnotationParserInstance = AnnotationParser()
@@ -100,6 +102,7 @@ class CameraCapture(object):
         return
 
     def __sendFrameForProcessing(self, frame):
+        # AnalyzeMeasures.AnalyzeMeasures(frame)
         AnalyzeFrame.AnalyzeFrame(frame)
 
         """

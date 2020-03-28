@@ -117,7 +117,10 @@ def get_digits(img, computervision_client):
     #                     string_dict[i] = s
     #                     i += 1
     
+    tmp_frame = cv2.imdecode(np.frombuffer(img, np.uint8), -1)
     results = []
+    text_flag = False
+    show_frame_flag = True
     if get_printed_text_results.status == TextOperationStatusCodes.succeeded:
         for text_result in get_printed_text_results.recognition_results:
             for line in text_result.lines:
@@ -127,9 +130,14 @@ def get_digits(img, computervision_client):
                     if s[0] == ".":
                         s = s[1:]
                     s = s.rstrip(".")
+                    text_flag = True
+                    cv2.rectangle(tmp_frame, (int(line.bounding_box[0]), int(line.bounding_box[1])), (int(line.bounding_box[4]), int(line.bounding_box[5])), (255,0,0), 2)
+                    results.append((s, line.bounding_box))
                 else:
                     continue
-                results.append((s, line.bounding_box))
+        if text_flag and show_frame_flag:
+            cv2.imshow("image", tmp_frame)
+            cv2.waitKey(0)
     return(results)
 import cv2
 import math
