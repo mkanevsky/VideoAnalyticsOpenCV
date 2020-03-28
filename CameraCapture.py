@@ -49,6 +49,7 @@ class CameraCapture(object):
             cognitiveServiceKey="",
             modelId=""):
         self.videoPath = videoPath
+        # Avihay's bug fix:
         if not self.__IsInt(videoPath):
             #case of a usb camera (usually mounted at /dev/video* where * is an int)
             self.isWebcam = True

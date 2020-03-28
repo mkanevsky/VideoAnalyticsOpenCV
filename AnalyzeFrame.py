@@ -140,7 +140,7 @@ def AnalyzeFrame(frame, computervision_client):
     # tmp = cv2.imencode(".jpg", frame)[1]
     # cv2.imwrite("try.jpg", tmp)
     y,x = s[0], s[1]
-    crop_img_side = frame[0:y, math.ceil(0.70*x):math.ceil(0.90*x)]
+    crop_img_side = frame[0:y, math.ceil(0.7*x):math.ceil(0.90*x)]
     crop_img_low = frame[math.ceil(0.7*y):y, math.ceil(0.3*x):math.ceil(0.7*x)]
     areas = [crop_img_side, crop_img_low]
 
