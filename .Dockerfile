@@ -11,6 +11,5 @@ WORKDIR /app
 ENV VIDEO_PATH rtsp://username:password@ipaddress:554//h264Preview_01_sub
 ENV VERBOSE=True
 ENV IMAGE_PROCESSING_ENDPOINT=https://your_form_recognizer_service_name.cognitiveservices.azure.com/
-ENV MODEL_ID=your_form_recognizer_custom_model_id
 
 CMD python main.py
