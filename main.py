@@ -16,6 +16,7 @@ SEND_CALLBACKS = 0
 
 def main(
         videoPath,
+        onboardingMode,
         imageProcessingEndpoint="",
         imageProcessingParams="",
         showVideo=False,
@@ -32,6 +33,7 @@ def main(
     Capture a camera feed, send it to processing and forward outputs to EdgeHub
 
     :param int videoPath: camera device path such as /dev/video0 or a test video file such as /TestAssets/myvideo.avi. Mandatory.
+    :param bool onboardingMode: is onBoarding mode or live-stream mode
     :param str imageProcessingEndpoint: service endpoint to send the frames to for processing. Example: "http://face-detect-service:8080". Leave empty when no external processing is needed (Default). Optional.
     :param str imageProcessingParams: query parameters to send to the processing service. Example: "'returnLabels': 'true'". Empty by default. Optional.
     :param bool showVideo: show the video in a windows. False by default. Optional.
@@ -45,7 +47,7 @@ def main(
     try:
         print("\nPython %s\n" % sys.version)
         print("Camera Capture Azure IoT Edge Module. Press Ctrl-C to exit.")
-        with CameraCapture(videoPath, imageProcessingEndpoint, imageProcessingParams, showVideo, verbose, loopVideo, convertToGray, resizeWidth, resizeHeight, annotate, cognitiveServiceKey, modelId) as cameraCapture:
+        with CameraCapture(videoPath, onboardingMode, imageProcessingEndpoint, imageProcessingParams, showVideo, verbose, loopVideo, convertToGray, resizeWidth, resizeHeight, annotate, cognitiveServiceKey, modelId) as cameraCapture:
             cameraCapture.start()
     except KeyboardInterrupt:
         print("Camera capture module stopped")
@@ -64,6 +66,7 @@ if __name__ == '__main__':
     try:
         VIDEO_PATH = os.environ['VIDEO_PATH']
         print("Vid Path", VIDEO_PATH)
+        ONBOARDING_MODE = __convertStringToBool(os.getenv('ONBOARDING_MODE', 'True'))
         IMAGE_PROCESSING_ENDPOINT = os.getenv('IMAGE_PROCESSING_ENDPOINT', "")
         IMAGE_PROCESSING_PARAMS = os.getenv('IMAGE_PROCESSING_PARAMS', "")
         SHOW_VIDEO = __convertStringToBool(os.getenv('SHOW_VIDEO', 'True'))
@@ -81,5 +84,5 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # print(IMAGE_PROCESSING_ENDPOINT)
-    main(VIDEO_PATH, IMAGE_PROCESSING_ENDPOINT, IMAGE_PROCESSING_PARAMS, SHOW_VIDEO,
+    main(VIDEO_PATH, ONBOARDING_MODE, IMAGE_PROCESSING_ENDPOINT, IMAGE_PROCESSING_PARAMS, SHOW_VIDEO,
          VERBOSE, LOOP_VIDEO, CONVERT_TO_GRAY, RESIZE_WIDTH, RESIZE_HEIGHT, ANNOTATE, COGNITIVE_SERVICE_KEY, MODEL_ID)

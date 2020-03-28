@@ -37,6 +37,7 @@ class CameraCapture(object):
     def __init__(
             self,
             videoPath,
+            onboardingMode,
             imageProcessingEndpoint = "",
             imageProcessingParams = "", 
             showVideo = False, 
@@ -49,6 +50,7 @@ class CameraCapture(object):
             cognitiveServiceKey="",
             modelId=""):
         self.videoPath = videoPath
+        self.onboardingMode = onboardingMode
         # Avihay's bug fix:
         if not self.__IsInt(videoPath):
             #case of a usb camera (usually mounted at /dev/video* where * is an int)
@@ -114,8 +116,12 @@ class CameraCapture(object):
         return
 
     def __sendFrameForProcessing(self, frame):
+        if self.onboardingMode:
+            AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
+        else:
+            AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client)
         # AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client)
-        AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
+        # AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
 
         """
         # Endpoint URL
