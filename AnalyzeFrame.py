@@ -106,7 +106,7 @@ def get_digits(img, computervision_client):
     tmp_frame = cv2.imdecode(np.frombuffer(img, np.uint8), -1)
     results = []
     text_flag = False
-    show_frame_flag = False
+    show_frame_flag = True
     if get_printed_text_results.status == TextOperationStatusCodes.succeeded:
         for text_result in get_printed_text_results.recognition_results:
             for line in text_result.lines:
@@ -118,6 +118,7 @@ def get_digits(img, computervision_client):
                     s = s.rstrip(".")
                     text_flag = True
                     cv2.rectangle(tmp_frame, (int(line.bounding_box[0]), int(line.bounding_box[1])), (int(line.bounding_box[4]), int(line.bounding_box[5])), (255,0,0), 2)
+                    cv2.putText(tmp_frame,s,(int(line.bounding_box[0])-5, int(line.bounding_box[1])-5),cv2.FONT_HERSHEY_COMPLEX,0.3,(0,0,0),1)
                     results.append((s, line.bounding_box))
                 else:
                     continue
