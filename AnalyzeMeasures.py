@@ -166,6 +166,7 @@ def AnalyzeFrame(frame, computervision_client):
     # tmp = cv2.imencode(".jpg", frame)[1]
     # cv2.imwrite("try.jpg", tmp)
     frame_height, frame_width = s[0], s[1]
+    # TODO: new area dict
     areas_dict = {'side': [0, 1, 0.7, 0.9], 'bottom': [0.6, 0.9, 0.3, 0.7]}
     # w1 = 0.7
     # w2 = 0.9
@@ -203,6 +204,7 @@ def AnalyzeFrame(frame, computervision_client):
     # cv2.waitKey(0)
     
     monitor_id = "90210"
+    #TODO: change monitor id
     json_string_fin = bounding_boxes_output_former(transformed_coords, monitor_id, b64_encoded_frame)
     # print(json_string_fin)
     # print("--- %s seconds ---" % (time.time() - start_time))

@@ -25,6 +25,7 @@ from AnnotationParser import AnnotationParser
 # from ImageServer import ImageServer
 import AnalyzeMeasures
 # import AnalyzeMeasures2
+import AnalyzeFrame2
 
 class CameraCapture(object):
 
@@ -36,8 +37,16 @@ class CameraCapture(object):
             return False
 
     
-    def __get_boundries(self, monitor_id):
-        self.boundries = {}
+    def __get_boundries(self):
+        headers={'Content-type':'application/json', 'Accept':'application/json'}
+        url = "http://rstreamapp.azurewebsites.net/api/DownloadMonitorMapping?monitorID=" + self.monitor_id
+        post_response = requests.get(url, headers=headers)
+        json_response = post_response.content.decode('utf-8')
+        dict_response = json.loads(json_response)
+        mimage = dict_response["MonitorImage"]
+        mapping = dict_response["MappingJson"]
+        mapping_dict = json.loads(mapping)
+        self.boundries = mapping_dict
         return
     
 
@@ -56,6 +65,7 @@ class CameraCapture(object):
             annotate = False,
             cognitiveServiceKey="",
             modelId="",
+            # TODO: change monitorID:
             monitorid = "90210"):
         self.videoPath = videoPath
         self.onboardingMode = onboardingMode
@@ -84,7 +94,7 @@ class CameraCapture(object):
         self.monitor_id = monitorid
 
         if not self.onboardingMode: # we are streaming, will use known boundries
-           self.__get_boundries(self.monitor_id)
+           self.__get_boundries()
         
         if self.convertToGray:
             self.nbOfPreprocessingSteps +=1
@@ -133,6 +143,7 @@ class CameraCapture(object):
             # AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
         else:
             AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client, self.boundries)
+            # AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client, self.boundries)
 
         """
         # Endpoint URL
