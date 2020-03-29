@@ -150,7 +150,8 @@ def AnalyzeFrame(frame, computervision_client):
     # h2 = frame_height
     crop_img_side = frame[0:frame_height, math.ceil(0.7*frame_width):math.ceil(0.90*frame_width)]
     crop_img_low = frame[math.ceil(0.7*frame_height):frame_height, math.ceil(0.3*frame_width):math.ceil(0.7*frame_width)]
-    areas = [crop_img_side, crop_img_low]
+    # areas = [crop_img_side, crop_img_low]
+    areas = [crop_img_side]
 
     # our output
     coords = {}

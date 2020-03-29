@@ -98,10 +98,10 @@ class CameraCapture(object):
             print()
         
         self.displayFrame = None
-        if self.showVideo:
-            self.imageServer = ImageServer(5012, self)
-            self.imageServer.start()
-            # self.imageServer.run()
+        # if self.showVideo:
+        #     self.imageServer = ImageServer(5012, self)
+        #     self.imageServer.start()
+        #     # self.imageServer.run()
         
         COMPUTER_VISION_ENDPOINT = os.environ["COMPUTER_VISION_ENDPOINT"]
         COMPUTER_VISION_SUBSCRIPTION_KEY = os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"]
