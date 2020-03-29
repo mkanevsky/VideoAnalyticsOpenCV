@@ -129,7 +129,7 @@ def get_digits(img, computervision_client):
 
 #TODO: incorporate along the way:
 
-def AnalyzeFrame(frame, computervision_client):
+def AnalyzeFrame(frame, computervision_client, boundries):
     # COMPUTER_VISION_ENDPOINT = os.environ["COMPUTER_VISION_ENDPOINT"]
     # COMPUTER_VISION_SUBSCRIPTION_KEY = os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"]
     # #TODO: get client as argument

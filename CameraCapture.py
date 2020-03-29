@@ -24,6 +24,7 @@ from AnnotationParser import AnnotationParser
 # import ImageServer
 # from ImageServer import ImageServer
 import AnalyzeMeasures
+# import AnalyzeMeasures2
 
 class CameraCapture(object):
 
@@ -33,6 +34,12 @@ class CameraCapture(object):
             return True
         except ValueError:
             return False
+
+    
+    def __get_boundries(self, monitor_id):
+        self.boundries = {}
+        return
+    
 
     def __init__(
             self,
@@ -48,7 +55,8 @@ class CameraCapture(object):
             resizeHeight = 0,
             annotate = False,
             cognitiveServiceKey="",
-            modelId=""):
+            modelId="",
+            monitorid = "90210"):
         self.videoPath = videoPath
         self.onboardingMode = onboardingMode
         # Avihay's bug fix:
@@ -73,7 +81,11 @@ class CameraCapture(object):
         self.nbOfPreprocessingSteps = 0
         self.autoRotate = False
         self.vs = None
+        self.monitor_id = monitorid
 
+        if not self.onboardingMode: # we are streaming, will use known boundries
+           self.__get_boundries(self.monitor_id)
+        
         if self.convertToGray:
             self.nbOfPreprocessingSteps +=1
         if self.resizeWidth != 0 or self.resizeHeight != 0:
@@ -118,10 +130,9 @@ class CameraCapture(object):
     def __sendFrameForProcessing(self, frame):
         if self.onboardingMode:
             AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
+            # AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
         else:
-            AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client)
-        # AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client)
-        # AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
+            AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client, self.boundries)
 
         """
         # Endpoint URL
@@ -248,8 +259,15 @@ class CameraCapture(object):
                     startProcessingExternally = time.time()
 
                 #Send over HTTP for processing
+                if self.onboardingMode:
+                    print('Onboarding mode, will stop stream after 1 frame')
+                    response = self.__sendFrameForProcessing(encodedFrame)
+                    self.vs.stream.release()
+                    break
+                else:
+                    response = self.__sendFrameForProcessing(encodedFrame)
+
                 # response = self.__sendFrameForProcessing(encodedFrame)
-                response = self.__sendFrameForProcessing(encodedFrame)
                 if self.verbose:
                     print("Time to process frame externally: " + self.__displayTimeDifferenceInMs(time.time(), startProcessingExternally))
                     startSendingToEdgeHub = time.time()

@@ -18,28 +18,6 @@ import math
 import numpy as np
 import base64
 
-def create_areas(area_dict, img):
-    s = img.shape
-    height, width = s[0], s[1]
-    areas = []
-    for key, value in area_dict.items():
-        hmin, hmax, wmin, wmax = value
-        print(hmin, hmax, wmin, wmax)
-        hmin *= height
-        hmax *= height
-        wmin *= width
-        wmax *= width
-        print(hmin, hmax, wmin, wmax)
-        new_area = [img[math.ceil(hmin):math.ceil(hmax), math.ceil(wmin):math.ceil(wmax)], hmin, wmin]
-        areas.append(new_area)
-    return areas
-
-def transform_coords(coords, area, mode='avihay'):
-    print(coords[0][0])
-    topleft = (coords[0][0]+area[2], coords[0][1]+area[1])
-    bottomright = (coords[1][0]+area[2], coords[1][1]+area[1])
-    return (topleft, bottomright)
-
 
 def create_bounded_output(readings, boundings, boundries):
     output_dict = {}
@@ -128,7 +106,7 @@ def get_digits(img, computervision_client):
     tmp_frame = cv2.imdecode(np.frombuffer(img, np.uint8), -1)
     results = []
     text_flag = True
-    show_frame_flag = False
+    show_frame_flag = True
     if get_printed_text_results.status == TextOperationStatusCodes.succeeded:
         for text_result in get_printed_text_results.recognition_results:
             for line in text_result.lines:
@@ -166,31 +144,27 @@ def AnalyzeFrame(frame, computervision_client):
     # tmp = cv2.imencode(".jpg", frame)[1]
     # cv2.imwrite("try.jpg", tmp)
     frame_height, frame_width = s[0], s[1]
-    areas_dict = {'side': [0, 1, 0.7, 0.9], 'bottom': [0.6, 0.9, 0.3, 0.7]}
     # w1 = 0.7
     # w2 = 0.9
     # h1 = 0
     # h2 = frame_height
-    # crop_img_side = frame[0:frame_height, math.ceil(0.7*frame_width):math.ceil(0.90*frame_width)]
-    # crop_img_low = frame[math.ceil(0.6*frame_height):frame_height, math.ceil(0.3*frame_width):math.ceil(0.7*frame_width)]
+    crop_img_side = frame[0:frame_height, math.ceil(0.7*frame_width):math.ceil(0.90*frame_width)]
+    crop_img_low = frame[math.ceil(0.7*frame_height):frame_height, math.ceil(0.3*frame_width):math.ceil(0.7*frame_width)]
     # areas = [crop_img_side, crop_img_low]
-    # areas = [crop_img_side]
-    areas = create_areas(areas_dict, frame)
+    areas = [crop_img_side]
+
     # our output
     coords = {}
-    transformed_coords = {}
     i = 0
-    for area in areas:
-        result = get_digits(cv2.imencode(".jpg", area[0])[1], computervision_client)
-        print(result)
+    for img in areas:
+        # print(type(img))
+        result = get_digits(cv2.imencode(".jpg", img)[1], computervision_client)
         for item in result:
-            print(i, item)
             coords[i] = item
-            transformed_coords[i] = transform_coords(item, area)
             i = i + 1
-    print("coords are:", coords)
-    #transformed_coords = {k: tuple((int(x[0]+0.7*frame_width), x[1]) for x in v) for k,v in coords.items()}
-    print("fixed coords are:", transformed_coords)
+    print(coords)
+    transformed_coords = {k: tuple((int(x[0]+0.7*frame_width), x[1]) for x in v) for k,v in coords.items()}
+    print(transformed_coords)
 
     b64img = base64.b64encode(cv2.imencode(".jpg", frame)[1])
 
@@ -208,15 +182,8 @@ def AnalyzeFrame(frame, computervision_client):
     # print("--- %s seconds ---" % (time.time() - start_time))
     url = "http://rstreamapp.azurewebsites.net/api/UploadMonitorMapping"
     headers={'Content-type':'application/json', 'Accept':'application/json'}
-    for trial in range(4):
-        while True:
-            try:
-                response = requests.post(url, data=json_string_fin, headers=headers)
-            except Exception as e:
-                print("Exception while posting:   |    ", e)
-                continue
-            break
-    #print(response)
+    response = requests.post(url, data=json_string_fin, headers=headers)
+    # print(response)
 
     #print('results for frame: ', result_list)
 
