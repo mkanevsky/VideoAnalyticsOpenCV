@@ -168,7 +168,7 @@ def AnalyzeFrame(frame, computervision_client):
 
     b64img = base64.b64encode(cv2.imencode(".jpg", frame)[1])
 
-    # b64_encoded_frame = b64img.decode('utf-8')
+    b64_encoded_frame = b64img.decode('utf-8')
     # Check transformed coords:
     # tmp_frame = frame
     # for k, v in transformed_coords.items():
@@ -177,13 +177,13 @@ def AnalyzeFrame(frame, computervision_client):
     # cv2.waitKey(0)
     
     monitor_id = "1"
-    json_string_fin = bounding_boxes_output_former(coords, monitor_id, b64img)
-    print(json_string_fin)
+    json_string_fin = bounding_boxes_output_former(transformed_coords, monitor_id, b64_encoded_frame)
+    # print(json_string_fin)
     # print("--- %s seconds ---" % (time.time() - start_time))
     url = "http://rstreamapp.azurewebsites.net/api/UploadMonitorMapping"
     headers={'Content-type':'application/json', 'Accept':'application/json'}
     response = requests.post(url, data=json_string_fin, headers=headers)
-    print(response)
+    # print(response)
 
     #print('results for frame: ', result_list)
 
