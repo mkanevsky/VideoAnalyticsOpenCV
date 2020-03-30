@@ -142,8 +142,8 @@ class CameraCapture(object):
             AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
             # AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
         else:
-            AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client, self.boundries)
-            # AnalyzeFrame2.AnalyzeFrame(frame, self.computervision_client, self.boundries)
+            # AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client, self.boundries)
+            AnalyzeFrame2.AnalyzeFrame(frame, self.computervision_client, self.boundries)
 
         """
         # Endpoint URL
