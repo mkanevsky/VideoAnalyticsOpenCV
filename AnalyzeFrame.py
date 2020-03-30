@@ -172,6 +172,7 @@ def AnalyzeFrame(frame, computervision_client, boundries):
     height, width = s[0], s[1]
     # TODO: now area dict
     areas_dict = {'side': [0, 1, 0.7, 0.9], 'bottom': [0.6, 0.9, 0.3, 0.7]} #will be an input later!
+    # areas_dict = {'side': [0.1, 0.9, 0.675, 0.92]} #will be an input later!
     """
     crop_img_side = frame[0:y, math.ceil(0.7*x):math.ceil(0.90*x)]
     crop_img_low = frame[math.ceil(0.7*y):y, math.ceil(0.3*x):math.ceil(0.7*x)]
