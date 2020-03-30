@@ -43,7 +43,7 @@ def transform_coords(coords, area):
 def transform_boundries(boundry_dict):
     fixed_dict = {}
     for key, value in boundry_dict.items():
-        fixed_value = [value[0][0]-15, value[1][0]+15, value[0][1]-15, value[1][1]+15]
+        fixed_value = [value[0][0]-20, value[1][0]+10, value[0][1]-15, value[1][1]+10]
         fixed_dict[key] = fixed_value
     return fixed_dict
     
@@ -142,7 +142,7 @@ def get_digits(img, computervision_client):
         for text_result in get_printed_text_results.recognition_results:
             for line in text_result.lines:
                 # print(line.text, line.bounding_box)
-                s = re.sub('[^0123456789./]', '', line.text)
+                s = re.sub('[^0123456789./()]', '', line.text)
                 if s != "":
                     if s[0] == ".":
                         s = s[1:]
@@ -161,6 +161,7 @@ def get_digits(img, computervision_client):
 #TODO: incorporate along the way:
 
 def AnalyzeFrame(frame, computervision_client, boundries):
+    # print(boundries)
     # COMPUTER_VISION_ENDPOINT = os.environ["COMPUTER_VISION_ENDPOINT"]
     # COMPUTER_VISION_SUBSCRIPTION_KEY = os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"]
     # #TODO: get client as argument
@@ -171,7 +172,8 @@ def AnalyzeFrame(frame, computervision_client, boundries):
     # cv2.imwrite("try.jpg", tmp)
     height, width = s[0], s[1]
     # TODO: now area dict
-    areas_dict = {'side': [0, 1, 0.7, 0.9], 'bottom': [0.6, 0.9, 0.3, 0.7]} #will be an input later!
+    # areas_dict = {'side': [0, 1, 0.7, 0.9], 'bottom': [0.6, 0.9, 0.3, 0.7]} #will be an input later!
+    areas_dict = {'side': [0, 1, 0.6, 0.9]} #will be an input later!
     # areas_dict = {'side': [0.1, 0.9, 0.675, 0.92]} #will be an input later!
     """
     crop_img_side = frame[0:y, math.ceil(0.7*x):math.ceil(0.90*x)]
@@ -205,9 +207,14 @@ def AnalyzeFrame(frame, computervision_client, boundries):
     boundry_temp3 = {0: [-11.0, 50.0, 32.0, 85.0], 1: [-12.0, 62.0, 56.0, 106.0], 2: [-9.0, 60.0, 77.0, 124.0], 3: [-9.0, 45.0, 99.0, 147.0], 4: [-10.0, 37.0, 121.0, 166.0]}
     boundry_temp = {0: [0.04656862745098039, 0.12826797385620914, 0.20147420147420148, 0.29975429975429974], 1: [0.03594771241830065, 0.1968954248366013, 0.3046683046683047, 0.414004914004914], 2: [0.0457516339869281, 0.15522875816993464, 0.41154791154791154, 0.47911547911547914], 3: [0.03104575163398693, 0.10294117647058823, 0.5147420147420148, 0.6130221130221131], 4: [0.03594771241830065, 0.09803921568627451, 0.6130221130221131, 0.7014742014742015], 5: [0.07598039215686274, 0.1772875816993464, -0.002457002457002457, 0.09705159705159705]}
     """
-    boundry_temp_new = {0: [218.0, 275.0, 27.0, 78.0], 1: [217.0, 296.0, 51.0, 101.0], 2: [219.0, 284.0, 73.0, 117.0], 3: [213.0, 293.0, 93.0, 142.0], 4: [216.0, 273.0, 116.0, 164.0], 5: [102.0, 164.0, 132.0, 184.0]}
+    # print("********************BOUNDINGs ARE:**************************")
     # print(boundings)
-    output = create_bounded_output(readings, boundings, transform_boundries(boundries))
+    # boundry_temp_new = {0: [218.0, 275.0, 27.0, 78.0], 1: [217.0, 296.0, 51.0, 101.0], 2: [219.0, 284.0, 73.0, 117.0], 3: [213.0, 293.0, 93.0, 142.0], 4: [216.0, 273.0, 116.0, 164.0], 5: [102.0, 164.0, 132.0, 184.0]}
+    boundry_temp_new = {0: [[193.0, 42.0], [254.0, 71.0]], 1: [[192.0, 71.0], [275.0, 90.0] ], 2: [[192.0, 93.0], [263.0, 109.0]], 3: [[192.0, 114.0], [249.0, 134.0]], 4: [[193.0, 140.0], [241.0, 153.0]]}
+    # print(boundings)
+    output = create_bounded_output(readings, boundings, transform_boundries(boundry_temp_new))
+    # output = create_bounded_output(readings, boundings, transform_boundries(boundries))
+    # output = create_bounded_output(readings, boundings, boundry_temp_new)
     # print(output)
 
     pat_id = "200465524"

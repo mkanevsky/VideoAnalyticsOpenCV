@@ -17,6 +17,37 @@ import cv2
 import math
 import numpy as np
 
+def create_areas(area_dict, img):
+    s = img.shape
+    height, width = s[0], s[1]
+    areas = []
+    for key, value in area_dict.items():
+        hmin, hmax, wmin, wmax = value
+        hmin *= height
+        hmax *= height
+        wmin *= width
+        wmax *= width
+        new_area = [img[math.ceil(hmin):math.ceil(hmax), math.ceil(wmin):math.ceil(wmax)], hmin, wmin]
+        areas.append(new_area)
+    return areas
+
+def transform_coords(coords, area):
+    fixed_coords = []
+    for j in range(8):
+        if j%2==0:
+            fixed_coords.append(coords[j] + area[2])
+        else:
+            fixed_coords.append(coords[j] + area[1])
+    return fixed_coords
+    
+def transform_boundries(boundry_dict):
+    fixed_dict = {}
+    for key, value in boundry_dict.items():
+        fixed_value = [value[0][0]-10, value[1][0]+10, value[0][1]-10, value[1][1]+10]
+        fixed_dict[key] = fixed_value
+    return fixed_dict
+    
+
 
 def create_bounded_output(readings, boundings, boundries):
     output_dict = {}
@@ -138,29 +169,49 @@ def AnalyzeFrame(frame, computervision_client, boundries):
     s = frame.shape
     # tmp = cv2.imencode(".jpg", frame)[1]
     # cv2.imwrite("try.jpg", tmp)
-    y,x = s[0], s[1]
+    height, width = s[0], s[1]
+    #areas_dict = {'side': [0, 1, 0.7, 0.9], 'bottom': [0.6, 0.9, 0.3, 0.7]} #will be an input later! #monitor 1
+    areas_dict = {'side': [0.22, 0.9, 0.67, 0.92]} #will be an input later! #monitor 3
+    """
     crop_img_side = frame[0:y, math.ceil(0.7*x):math.ceil(0.90*x)]
     crop_img_low = frame[math.ceil(0.7*y):y, math.ceil(0.3*x):math.ceil(0.7*x)]
     areas = [crop_img_side, crop_img_low]
+    """
+    areas = create_areas(areas_dict, frame)
 
     # our output
     readings = {}
     boundings = {}
     i = 0
-    for img in areas:
+    for area in areas:
         # print(type(img))
-        results = get_digits(cv2.imencode(".jpg", img)[1], computervision_client)
+        results = get_digits(cv2.imencode(".jpg", area[0])[1], computervision_client)
         for item in results:
             readings[i] = item[0]
-            boundings[i] = item[1]
+            boundings[i] = transform_coords(item[1], area)
             i = i + 1
-    
+        """
+    print("*********************BOUNDRIES***************************")
+    print(transform_boundries(boundries))
+    print("********************READINGs ARE:**************************")
+    print(readings)
+    print("********************BOUNDINGs ARE:**************************")
+    print(boundings)
     boundry_dict = {i:[min(x[0],x[6]) -15,max(x[2],x[4]) +15 ,min(x[3],x[1]) -15,max(x[5],x[7]) + 15] for i,x in enumerate(boundings.values())}
-    # print(boundry_dict)
+    print("********************BOUNDRY DICT**************************")
+    print(boundry_dict)
     boundry_temp2 = {0: [10.0, 46.0, 38.0, 68.0], 1: [8.0, 67.0, 62.0, 94.0], 2: [9.0, 55.0, 83.0, 108.0], 3: [5.0, 36.0, 107.0, 132.0], 4: [7.0, 34.0, 128.0, 152.0]}
     boundry_temp3 = {0: [-11.0, 50.0, 32.0, 85.0], 1: [-12.0, 62.0, 56.0, 106.0], 2: [-9.0, 60.0, 77.0, 124.0], 3: [-9.0, 45.0, 99.0, 147.0], 4: [-10.0, 37.0, 121.0, 166.0]}
     boundry_temp = {0: [0.04656862745098039, 0.12826797385620914, 0.20147420147420148, 0.29975429975429974], 1: [0.03594771241830065, 0.1968954248366013, 0.3046683046683047, 0.414004914004914], 2: [0.0457516339869281, 0.15522875816993464, 0.41154791154791154, 0.47911547911547914], 3: [0.03104575163398693, 0.10294117647058823, 0.5147420147420148, 0.6130221130221131], 4: [0.03594771241830065, 0.09803921568627451, 0.6130221130221131, 0.7014742014742015], 5: [0.07598039215686274, 0.1772875816993464, -0.002457002457002457, 0.09705159705159705]}
-    output = create_bounded_output(readings, boundings, boundry_temp3)
+    """
+    boundry_temp_new = {0: [218.0, 275.0, 27.0, 78.0], 1: [217.0, 296.0, 51.0, 101.0], 2: [219.0, 284.0, 73.0, 117.0], 3: [213.0, 293.0, 93.0, 142.0], 4: [216.0, 273.0, 116.0, 164.0], 5: [102.0, 164.0, 132.0, 184.0]}
+    boundry_temp_mon3 = {0: [[441.8, 481.8], [115.6, 147.6]], 1: [[445.8, 496.8], [158.6, 191.6]], 2: [[516.8, 531.8], [179.6, 194.6]], 3: [[446.8, 507.8], [198.6, 221.6]], 4: [[481.8, 505.8], [218.6, 235.6]], 5: [[437.8, 475.8], [242.6, 273.6]], 6: [[499.8, 525.8], [244.6, 258.6]], 7: [[499.8, 527.8], [262.6, 274.6]], 8: [[441.8, 473.8], [284.6, 314.6]]}
+    boundry_temp_mon32 = {0: ((441.8, 114.6), (482.8, 144.6)), 1: ((445.8, 156.6), (511.8, 190.6)), 2: ((437.8, 196), (505.8, 216)),  3: ((439.8, 240.6), (475.8, 272.6)), 4: ((442.8, 282.6), (474.8, 310.6))}
+    """
+    print("********************New Boundrys ARE:**************************")
+    print(transform_boundries(boundry_temp_mon32))
+    """
+    output = create_bounded_output(readings, boundings, transform_boundries(boundry_temp_mon32))
     # print(output)
 
     pat_id = "200465524"
