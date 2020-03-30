@@ -192,6 +192,7 @@ def AnalyzeFrame(frame, computervision_client):
     print("coords are:", coords)
     #transformed_coords = {k: tuple((int(x[0]+0.7*frame_width), x[1]) for x in v) for k,v in coords.items()}
     print("fixed coords are:", transformed_coords)
+    return
 
     b64img = base64.b64encode(cv2.imencode(".jpg", frame)[1])
 
