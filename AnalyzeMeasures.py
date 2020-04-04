@@ -112,7 +112,7 @@ def get_digits(img, computervision_client):
     return(results)
 
 
-def AnalyzeFrame(frame, computervision_client):
+def AnalyzeMeasures(frame, computervision_client):
     frame = cv2.imdecode(np.frombuffer(frame, np.uint8), -1)
     # areas_dict = {'side': [0, 1, 0.7, 0.9], 'bottom': [0.6, 0.9, 0.3, 0.7]}
     areas_dict = {'low': [0.6, 0.85, 0, 0.5], 'side': [0.1, 0.9, 0.6, 0.9]}
