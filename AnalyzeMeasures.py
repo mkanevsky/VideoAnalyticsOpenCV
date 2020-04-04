@@ -132,7 +132,7 @@ def get_digits(img, computervision_client):
     if get_printed_text_results.status == TextOperationStatusCodes.succeeded:
         for text_result in get_printed_text_results.recognition_results:
             for line in text_result.lines:
-                # print(line.text, line.bounding_box)
+                print(line.text, line.bounding_box)
                 s = re.sub('[^0123456789./]', '', line.text)
                 if s != "":
                     if s[0] == ".":
@@ -168,6 +168,7 @@ def AnalyzeFrame(frame, computervision_client):
     frame_height, frame_width = s[0], s[1]
     # TODO: new area dict
     areas_dict = {'side': [0, 1, 0.7, 0.9], 'bottom': [0.6, 0.9, 0.3, 0.7]}
+    areas_dict = {'low': [0.6, 0.85, 0, 0.5], 'side': [0.1, 0.9, 0.6, 0.9]}
     # w1 = 0.7
     # w2 = 0.9
     # h1 = 0
@@ -189,7 +190,7 @@ def AnalyzeFrame(frame, computervision_client):
             coords[i] = item
             transformed_coords[i] = transform_coords(item, area)
             i = i + 1
-    print("coords are:", coords)
+    # print("coords are:", coords)
     #transformed_coords = {k: tuple((int(x[0]+0.7*frame_width), x[1]) for x in v) for k,v in coords.items()}
     print("fixed coords are:", transformed_coords)
     return

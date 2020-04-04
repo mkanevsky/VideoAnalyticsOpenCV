@@ -35,19 +35,6 @@ class CameraCapture(object):
             return True
         except ValueError:
             return False
-
-    
-    def __get_boundries(self):
-        headers={'Content-type':'application/json', 'Accept':'application/json'}
-        url = "http://rstreamapp.azurewebsites.net/api/DownloadMonitorMapping?monitorID=" + self.monitor_id
-        post_response = requests.get(url, headers=headers)
-        json_response = post_response.content.decode('utf-8')
-        dict_response = json.loads(json_response)
-        mimage = dict_response["MonitorImage"]
-        mapping = dict_response["MappingJson"]
-        mapping_dict = json.loads(mapping)
-        self.boundries = mapping_dict
-        return
     
 
     def __init__(
@@ -58,7 +45,7 @@ class CameraCapture(object):
             imageProcessingParams = "", 
             showVideo = False, 
             verbose = False,
-            loopVideo = True,
+            loopVideo = False,
             convertToGray = False,
             resizeWidth = 0,
             resizeHeight = 0,
@@ -70,12 +57,14 @@ class CameraCapture(object):
         self.videoPath = videoPath
         self.onboardingMode = onboardingMode
         # Avihay's bug fix:
+        # TODO: add argument to choose which kind of processing - file or stream
         if not self.__IsInt(videoPath):
-            #case of a usb camera (usually mounted at /dev/video* where * is an int)
+            # case of a stream
             self.isWebcam = True
         else:
-            #case of a video file
+            # case of a video file
             self.isWebcam = False
+        # TODO: remove all commands related to imageProcessingEndpoint. It's irelevant
         self.imageProcessingEndpoint = imageProcessingEndpoint
         if imageProcessingParams == "":
             self.imageProcessingParams = "" 
@@ -93,7 +82,7 @@ class CameraCapture(object):
         self.vs = None
         self.monitor_id = monitorid
 
-        if not self.onboardingMode: # we are streaming, will use known boundries
+        if not self.onboardingMode: # live-stream mode, will use known boundries
            self.__get_boundries()
         
         if self.convertToGray:
@@ -129,6 +118,19 @@ class CameraCapture(object):
         COMPUTER_VISION_SUBSCRIPTION_KEY = os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"]
         self.computervision_client = ComputerVisionClient(COMPUTER_VISION_ENDPOINT, CognitiveServicesCredentials(COMPUTER_VISION_SUBSCRIPTION_KEY))
 
+    def __get_boundries(self):
+        headers={'Content-type':'application/json', 'Accept':'application/json'}
+        url = "http://rstreamapp.azurewebsites.net/api/DownloadMonitorMapping?monitorID=" + self.monitor_id
+        post_response = requests.get(url, headers=headers)
+        json_response = post_response.content.decode('utf-8')
+        dict_response = json.loads(json_response)
+        mimage = dict_response["MonitorImage"]
+        mapping = dict_response["MappingJson"]
+        mapping_dict = json.loads(mapping)
+        self.boundries = mapping_dict
+        return
+
+
     def __annotate(self, frame, response):
         AnnotationParserInstance = AnnotationParser()
         #TODO: Make the choice of the service configurable
@@ -137,55 +139,22 @@ class CameraCapture(object):
             cv2.rectangle(frame, (rectangle(0), rectangle(1)), (rectangle(2), rectangle(3)), (0,0,255),4)
         return
 
+    
     def __sendFrameForProcessing(self, frame):
+        # TODO: try-except-throw - by what Lior wants for the wrapper
         if self.onboardingMode:
             AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
             # AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
         else:
             # AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client, self.boundries)
             AnalyzeFrame2.AnalyzeFrame(frame, self.computervision_client, self.boundries)
-
-        """
-        # Endpoint URL
-        apim_key = self.cognitiveServiceKey
-        model_id = self.modelId
-        post_url = self.imageProcessingEndpoint + "formrecognizer/v1.0-preview/custom/models/%s/analyze" % model_id
-        params = {
-            "includeTextDetails": True
-        }
-
-        headers = {
-            # Request headers
-            'Content-Type': 'image/jpeg',
-            'Ocp-Apim-Subscription-Key': apim_key,
-        }
-
-        try:
-            print(post_url)
-            response = requests.post(post_url, headers = headers, params = params, data = frame)
-            print(response)
-
-            res = response.json()
-            print(json.dumps(res))
-
-            #print(res.pages[0].keyValuePairs[0].key.text)
-
-        except Exception as e:
-            print('__sendFrameForProcessing Excpetion -' + str(e))
-            return "[]"
-
-        if self.verbose:
-            try:
-                print("Response from external processing service: (" + str(response.status_code) + ") " + json.dumps(response.json()))
-            except Exception:
-                print("Response from external processing service (status code): " + str(response.status_code))
-        return json.dumps(response.json())
-        """
         return True
 
+    
     def __displayTimeDifferenceInMs(self, endTime, startTime):
         return str(int((endTime-startTime) * 1000)) + " ms"
 
+    
     def __enter__(self):
         if self.isWebcam:
             #The VideoStream class always gives us the latest frame from the webcam. It uses another thread to read the frames.
@@ -198,9 +167,11 @@ class CameraCapture(object):
             self.capture = cv2.VideoCapture(self.videoPath)
         return self
 
+    
     def get_display_frame(self):
         return self.displayFrame
 
+    
     def start(self):
         frameCounter = 0
         perfForOneFrameInMs = None
@@ -212,9 +183,6 @@ class CameraCapture(object):
 
             frameCounter +=1
             if self.isWebcam:
-            #     if frameCounter > 3:
-            #         for i in range(10):
-            #             self.vs.read()
                 frame = self.vs.read()
             else:
                 frame = self.capture.read()[1]
@@ -259,7 +227,7 @@ class CameraCapture(object):
             #Process externally
             if self.imageProcessingEndpoint != "":
 
-                #Encode frame to send over HTTP
+                #Encode frame - not in use for now
                 if self.nbOfPreprocessingSteps == 0:
                     encodedFrame = cv2.imencode(".jpg", frame)[1].tostring()
                 else:
@@ -269,7 +237,7 @@ class CameraCapture(object):
                     print("Time to encode a frame for processing: " + self.__displayTimeDifferenceInMs(time.time(), startEncodingForProcessing))
                     startProcessingExternally = time.time()
 
-                #Send over HTTP for processing
+                #Send for processing
                 if self.onboardingMode:
                     print('Onboarding mode, will stop stream after 1 frame')
                     response = self.__sendFrameForProcessing(encodedFrame)
