@@ -25,18 +25,18 @@ def create_areas(area_dict, img):
     areas = []
     for key, value in area_dict.items():
         hmin, hmax, wmin, wmax = value
-        print(hmin, hmax, wmin, wmax)
+        # print(hmin, hmax, wmin, wmax)
         hmin *= height
         hmax *= height
         wmin *= width
         wmax *= width
-        print(hmin, hmax, wmin, wmax)
+        # print(hmin, hmax, wmin, wmax)
         new_area = [img[math.ceil(hmin):math.ceil(hmax), math.ceil(wmin):math.ceil(wmax)], hmin, wmin]
         areas.append(new_area)
     return areas
 
 def transform_coords(coords, area, mode='avihay'):
-    print(coords[0][0])
+    # print(coords[0][0])
     topleft = (coords[0][0]+area[2], coords[0][1]+area[1])
     bottomright = (coords[1][0]+area[2], coords[1][1]+area[1])
     return (topleft, bottomright)
@@ -68,7 +68,7 @@ def bounding_boxes_output_former(bbox_dict, mon_id, encoded_image):
     json_dict["MonitorID"] = mon_id
     json_dict["MonitorImage"] = encoded_image
     json_dict_string = str(json_dict)
-    print(json_dict_string)
+    # print(json_dict_string)
     output = fix_string(json_dict_string)
     return output
 
