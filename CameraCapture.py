@@ -25,7 +25,7 @@ from AnnotationParser import AnnotationParser
 # from ImageServer import ImageServer
 import AnalyzeMeasures
 # import AnalyzeMeasures2
-import AnalyzeFrame2
+# import AnalyzeFrame2
 
 class CameraCapture(object):
 
