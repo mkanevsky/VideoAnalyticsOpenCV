@@ -43,12 +43,29 @@ def transform_coords(coords, area):
 def transform_boundries(boundry_dict):
     fixed_dict = {}
     for key, value in boundry_dict.items():
-        fixed_value = [value[0][0]-20, value[1][0]+10, value[0][1]-15, value[1][1]+10]
+        fixed_value = [value[0][0]-10, value[1][0]+10, value[0][1]-10, value[1][1]+10]
         fixed_dict[key] = fixed_value
     return fixed_dict
     
 
+def create_bounded_output(readings, boundings, boundries, method = 1):
+    output_dict = {}
+    for key in boundries.keys():
+        for i in range(len(readings)):
+            if method == 1 : # area contain
+                if check_boundry(boundings[i], boundries[key]): #c heck if temp rect in bigger rect
+                    output_dict[key] = readings[i]
+            elif method == 2: # area intersection
+                if check_overlap(boundings[i], boundries[key]):  # using precentage of interseection, greater than 0.7 is true!
+                    output_dict[key] = readings[i]
+            elif method == 3: # dot and contain
+                if check_dot(boundings[i], boundries[key]):  # rectangle containing center point
+                    output_dict[key] = readings[i]
+        if key not in output_dict.keys():
+            output_dict[key] = None
+    return output_dict
 
+"""
 def create_bounded_output(readings, boundings, boundries):
     output_dict = {}
     for key in boundries.keys():
@@ -58,6 +75,28 @@ def create_bounded_output(readings, boundings, boundries):
         if key not in output_dict.keys():
             output_dict[key] = "N/A"
     return output_dict
+"""
+
+
+def check_overlap(temp_bounding, hard_bounding):
+    a = [hard_bounding[0][0],hard_bounding[0][1],hard_bounding[1][0],hard_bounding[1][1]]
+    b = [temp_bounding[0],temp_bounding[1],temp_bounding[4],temp_bounding[5]]
+    total_area = (a[2] - a[0]) * (a[3] - a[1])
+    dx = min(a[2], b[2]) - max(a[0], b[0])
+    dy = min(a[3], b[3]) - max(a[1], b[1])
+    if (dx>=0) and (dy>=0):
+        if float((dx * dy) / total_area) > 0.7:
+            return True
+    return False
+
+    
+def check_dot(temp_bounding, hard_bounding):
+    # center_dot = (hard_bounding[0][0] + (hard_bounding[1][0] - hard_bounding[0][0])/ 2 , hard_bounding[0][1] + (hard_bounding[1][1] - hard_bounding[0][1])/ 2)
+    center_dot = (hard_bounding[0] + (hard_bounding[1] - hard_bounding[0])/ 2 , hard_bounding[2] + (hard_bounding[3] - hard_bounding[2])/ 2)
+    if center_dot[0] >= temp_bounding[0] and center_dot[0] <= temp_bounding[4] and center_dot[1] >= temp_bounding[1] and center_dot[1] <= temp_bounding[5]:
+        return True
+    return False
+
 
 def check_boundry(bounding, boundry):
     output = bounding[0]>=boundry[0]
@@ -69,28 +108,8 @@ def check_boundry(bounding, boundry):
     output = output and (bounding[5]<=boundry[3])
     output = output and (bounding[7]<=boundry[3])
     return output 
-"""
-def create_bounded_output(readings, boundings, boundries, x, y):
-    output_dict = {}
-    for key in boundries.keys():
-        for i in range(len(readings)):
-            if check_boundry(boundings[i], boundries[key], x, y):
-                output_dict[key] = readings[i]
-        if key not in output_dict.keys():
-            output_dict[key] = "N/A"
-    return output_dict
 
-def check_boundry(bounding, boundry,x ,y):
-    output = bounding[0]>=boundry[0]*x
-    output = output and (bounding[6]>=boundry[0]*x)
-    output = output and (bounding[2]<=boundry[1]*x)
-    output = output and (bounding[4]<=boundry[1]*x)
-    output = output and (bounding[1]>=boundry[2]*y)
-    output = output and (bounding[3]>=boundry[2]*y)
-    output = output and (bounding[5]<=boundry[3]*y)
-    output = output and (bounding[7]<=boundry[3]*y)
-    return output  
-"""
+
 def fix_string(s):
     json_string_fin = ""
     last_c=""
@@ -142,7 +161,7 @@ def get_digits(img, computervision_client):
         for text_result in get_printed_text_results.recognition_results:
             for line in text_result.lines:
                 # print(line.text, line.bounding_box)
-                s = re.sub('[^0123456789./()]', '', line.text)
+                s = re.sub('[^0123456789./]', '', line.text)
                 if s != "":
                     if s[0] == ".":
                         s = s[1:]
@@ -158,28 +177,15 @@ def get_digits(img, computervision_client):
             cv2.waitKey(0)
     return(results)
 
-#TODO: incorporate along the way:
+
 
 def AnalyzeFrame(frame, computervision_client, boundries):
-    # print(boundries)
-    # COMPUTER_VISION_ENDPOINT = os.environ["COMPUTER_VISION_ENDPOINT"]
-    # COMPUTER_VISION_SUBSCRIPTION_KEY = os.environ["COMPUTER_VISION_SUBSCRIPTION_KEY"]
-    # #TODO: get client as argument
-    # computervision_client = ComputerVisionClient(COMPUTER_VISION_ENDPOINT, CognitiveServicesCredentials(COMPUTER_VISION_SUBSCRIPTION_KEY))
     frame = cv2.imdecode(np.frombuffer(frame, np.uint8), -1)
-    s = frame.shape
-    # tmp = cv2.imencode(".jpg", frame)[1]
-    # cv2.imwrite("try.jpg", tmp)
-    height, width = s[0], s[1]
-    # TODO: now area dict
-    # areas_dict = {'side': [0, 1, 0.7, 0.9], 'bottom': [0.6, 0.9, 0.3, 0.7]} #will be an input later!
-    areas_dict = {'side': [0, 1, 0.6, 0.9]} #will be an input later!
-    # areas_dict = {'side': [0.1, 0.9, 0.675, 0.92]} #will be an input later!
-    """
-    crop_img_side = frame[0:y, math.ceil(0.7*x):math.ceil(0.90*x)]
-    crop_img_low = frame[math.ceil(0.7*y):y, math.ceil(0.3*x):math.ceil(0.7*x)]
-    areas = [crop_img_side, crop_img_low]
-    """
+    
+    # TODO: get area_dicts from MOB/DB
+    #areas_dict = {'side': [0, 1, 0.7, 0.9], 'bottom': [0.6, 0.9, 0.3, 0.7]} #will be an input later! #monitor 1
+    areas_dict = {'side': [0.1, 0.9, 0.67, 0.92]} #will be an input later! #monitor 3
+    areas_dict = {'low': [0.6, 0.85, 0, 0.5], 'side': [0.1, 0.9, 0.6, 0.9]}
     areas = create_areas(areas_dict, frame)
 
     # our output
@@ -187,133 +193,27 @@ def AnalyzeFrame(frame, computervision_client, boundries):
     boundings = {}
     i = 0
     for area in areas:
-        # print(type(img))
         results = get_digits(cv2.imencode(".jpg", area[0])[1], computervision_client)
         for item in results:
             readings[i] = item[0]
             boundings[i] = transform_coords(item[1], area)
             i = i + 1
-    # print("*********************BOUNDRIES***************************")
-    # print(transform_boundries(boundries))
-    """
-    print("********************READINGs ARE:**************************")
-    print(readings)
-    print("********************BOUNDINGs ARE:**************************")
-    print(boundings)
     boundry_dict = {i:[min(x[0],x[6]) -15,max(x[2],x[4]) +15 ,min(x[3],x[1]) -15,max(x[5],x[7]) + 15] for i,x in enumerate(boundings.values())}
-    print("********************BOUNDRY DICT**************************")
-    print(boundry_dict)
-    boundry_temp2 = {0: [10.0, 46.0, 38.0, 68.0], 1: [8.0, 67.0, 62.0, 94.0], 2: [9.0, 55.0, 83.0, 108.0], 3: [5.0, 36.0, 107.0, 132.0], 4: [7.0, 34.0, 128.0, 152.0]}
-    boundry_temp3 = {0: [-11.0, 50.0, 32.0, 85.0], 1: [-12.0, 62.0, 56.0, 106.0], 2: [-9.0, 60.0, 77.0, 124.0], 3: [-9.0, 45.0, 99.0, 147.0], 4: [-10.0, 37.0, 121.0, 166.0]}
-    boundry_temp = {0: [0.04656862745098039, 0.12826797385620914, 0.20147420147420148, 0.29975429975429974], 1: [0.03594771241830065, 0.1968954248366013, 0.3046683046683047, 0.414004914004914], 2: [0.0457516339869281, 0.15522875816993464, 0.41154791154791154, 0.47911547911547914], 3: [0.03104575163398693, 0.10294117647058823, 0.5147420147420148, 0.6130221130221131], 4: [0.03594771241830065, 0.09803921568627451, 0.6130221130221131, 0.7014742014742015], 5: [0.07598039215686274, 0.1772875816993464, -0.002457002457002457, 0.09705159705159705]}
-    """
-    # print("********************BOUNDINGs ARE:**************************")
-    # print(boundings)
-    # boundry_temp_new = {0: [218.0, 275.0, 27.0, 78.0], 1: [217.0, 296.0, 51.0, 101.0], 2: [219.0, 284.0, 73.0, 117.0], 3: [213.0, 293.0, 93.0, 142.0], 4: [216.0, 273.0, 116.0, 164.0], 5: [102.0, 164.0, 132.0, 184.0]}
-    boundry_temp_new = {0: [[193.0, 42.0], [254.0, 71.0]], 1: [[192.0, 71.0], [275.0, 90.0] ], 2: [[192.0, 93.0], [263.0, 109.0]], 3: [[192.0, 114.0], [249.0, 134.0]], 4: [[193.0, 140.0], [241.0, 153.0]]}
-    # print(boundings)
-    output = create_bounded_output(readings, boundings, transform_boundries(boundry_temp_new))
-    # output = create_bounded_output(readings, boundings, transform_boundries(boundries))
-    # output = create_bounded_output(readings, boundings, boundry_temp_new)
+    boundry_temp_mon32 = {0: ((471.0, 129), (516.0, 165)), 1: ((464.0, 170), (533.0, 213)), 2: ((469.0, 222), (541.0, 244)), 3: ((469.0, 272), (508.0, 306)), 4: ((471.0, 315), (505.0, 351))}
+    boundry_temp_mon32 = {0: ((132, 316.0), (246, 345.0)), 1: ((449.0, 172.0), (509.0, 221.0)), 2: ((439.0, 230.0), (485.0, 269.0)), 3: ((435.0, 271.0), (483.0, 312.0))}
+    
+    output = create_bounded_output(readings, boundings, transform_boundries(boundry_temp_mon32), 3)
     # print(output)
 
+    # TODO: get as input, when Shany's team is ready
     pat_id = "200465524"
     room = "13"
     mon_id = "90210"
-    # start_time = time.time()
     json_string_fin = output_former(output, room, pat_id, mon_id)
     print(json_string_fin)
-    # print("--- %s seconds ---" % (time.time() - start_time))
-    url = "http://rstreamapp.azurewebsites.net/api/InsertMonitorData"
-    headers={'Content-type':'application/json', 'Accept':'application/json'}
-    try:
-        response = requests.post(url, data=json_string_fin, headers=headers)
-    except Exception as e:
-        print("Exception when trying to post results. Continue to next frame. ", e)
-        pass
-
-    #print('results for frame: ', result_list)
-
-    # Creating client instance:
-    
-
-    """ CURRENT CODE: """
-    """
-
-    recognize_printed_results = computervision_client.batch_read_file_in_stream(io.BytesIO(frame), raw=True)
-    # recognize_printed_results = computervision_client.batch_read_file_in_stream((frame), raw=True)
-
-    
-    
-    # Reading OCR results
-    operation_location_remote = recognize_printed_results.headers["Operation-Location"]
-    operation_id = operation_location_remote.split("/")[-1]
-    while True:
-        get_printed_text_results = computervision_client.get_read_operation_result(operation_id)
-        if get_printed_text_results.status not in ['NotStarted', 'Running']:
-                break
-        time.sleep(0.05)
-
-    
-    string_dict = {}
-    i = 1
-    if get_printed_text_results.status == TextOperationStatusCodes.succeeded:
-        for text_result in get_printed_text_results.recognition_results:
-                for line in text_result.lines:
-                #        print(line.text)
-                #       print(line.bounding_box)
-                        s = re.sub('[^0123456789./]', '', line.text)
-                        if s != "":
-                            if s[0] == ".":
-                                s = s[1:]
-                            s = s.rstrip(".")
-                        else:
-                            continue
-                        string_dict[i] = s
-                        i += 1
-
-    pat_id = "200465524"
-    room = "13"
-    mon_id = "90210"
-    # start_time = time.time()
-    json_string_fin = output_former(string_dict, room, pat_id, mon_id)
-    print(json_string_fin)
-    # print("--- %s seconds ---" % (time.time() - start_time))
     url = "http://rstreamapp.azurewebsites.net/api/InsertMonitorData"
     headers={'Content-type':'application/json', 'Accept':'application/json'}
     response = requests.post(url, data=json_string_fin, headers=headers)
-    # print(" Reponse::   ", response)
-
-    # url = "http://rstreamapp.azurewebsites.net/api/GetMonitorData?PatientID=200465524&MonitorID=1"
-    # params = {"format": "json"}
-    # r = requests.get(url, params= params) 
-    # print(r)
-    """
-
-    """
-    data_dict = {}
-    i = 1
-    if get_printed_text_results.status == TextOperationStatusCodes.succeeded:
-        for text_result in get_printed_text_results.recognition_results:
-                for line in text_result.lines:
-                        # print("Measure: ", line.text, " | Sum xyz: ", sum(line.bounding_box))
-                        # print(sum(line.bounding_box))
-                        data_dict[i] = re.sub('[^0123456789./]', '', line.text)
-                        i = i + 1
-    
-    pat_id = "200465524"
-    room = "13"
-    mon_id = "90210"
-    json_string_fin = 
-    
-    data_json = json.dumps(data_dict)
-    data_string = "\"" + data_json + "\""
-    headers = {'Content-type':'application/json', 'Accept':'application/json'}
-    print(data_string)
-    url = "http://rstreamapp.azurewebsites.net/api/InsertMonitorData"
-    response = requests.post(url, data=data_string, headers=headers)
-    """
-    
 
     # TODO: sanity check results (charecters etc.) and send them to somewhere
     return

@@ -144,10 +144,10 @@ class CameraCapture(object):
         # TODO: try-except-throw - by what Lior wants for the wrapper
         if self.onboardingMode:
             AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
-            # AnalyzeMeasures.AnalyzeFrame(frame, self.computervision_client)
+            # AnalyzeMeasures2.AnalyzeFrame(frame, self.computervision_client)
         else:
-            # AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client, self.boundries)
-            AnalyzeFrame2.AnalyzeFrame(frame, self.computervision_client, self.boundries)
+            AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client, self.boundries)
+            # AnalyzeFrame2.AnalyzeFrame(frame, self.computervision_client, self.boundries)
         return True
 
     
