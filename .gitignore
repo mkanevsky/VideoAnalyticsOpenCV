@@ -2,3 +2,4 @@ secret.Dockerfile
 .vscode/*.*
 env.list
 aci.txt
+__pycach__/*.*
