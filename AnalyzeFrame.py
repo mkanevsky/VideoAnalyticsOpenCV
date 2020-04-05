@@ -17,6 +17,7 @@ import cv2
 import math
 import numpy as np
 
+
 def create_areas(area_dict, img):
     s = img.shape
     height, width = s[0], s[1]
@@ -141,6 +142,19 @@ def output_former(ocr_res, room, pat_id, mon_id):
     return output
 
 
+def sockets_output_former(ocr_res, room, pat_id, mon_id):
+    json_dict = {}
+    json_dict["JsonData"] = ocr_res
+    json_dict["MonitorID"] = mon_id
+    json_dict["PatientID"] = pat_id
+    json_dict["Room"] = room
+    output = json.dumps(json_dict)
+    print(output)
+
+    return output
+
+
+
 def get_digits(img, computervision_client):
     # encodedFrame = cv2.imencode(".jpg", img)[1].tostring()
     recognize_printed_results = computervision_client.batch_read_file_in_stream(io.BytesIO(img), raw = True)
@@ -179,7 +193,7 @@ def get_digits(img, computervision_client):
 
 
 
-def AnalyzeFrame(frame, computervision_client, boundries):
+def AnalyzeFrame(frame, computervision_client, boundries, ocrsocket):
     frame = cv2.imdecode(np.frombuffer(frame, np.uint8), -1)
     
     # TODO: get area_dicts from MOB/DB
@@ -205,10 +219,16 @@ def AnalyzeFrame(frame, computervision_client, boundries):
     output = create_bounded_output(readings, boundings, transform_boundries(boundry_temp_mon32), 3)
     # print(output)
 
+    
     # TODO: get as input, when Shany's team is ready
     pat_id = "200465524"
     room = "13"
     mon_id = "90210"
+    json_to_socket = sockets_output_former(output, room, pat_id, mon_id)
+    ocrsocket.emit('data', json_to_socket)
+    return
+
+
     json_string_fin = output_former(output, room, pat_id, mon_id)
     print(json_string_fin)
     url = "http://rstreamapp.azurewebsites.net/api/InsertMonitorData"

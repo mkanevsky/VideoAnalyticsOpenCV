@@ -16,6 +16,8 @@ from azure.cognitiveservices.vision.computervision.models import TextRecognition
 from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
 from msrest.authentication import CognitiveServicesCredentials
 
+from socketIO_client_nexus import SocketIO, BaseNamespace
+
 import VideoStream
 from VideoStream import VideoStream
 import AnalyzeFrame
@@ -24,8 +26,9 @@ from AnnotationParser import AnnotationParser
 # import ImageServer
 # from ImageServer import ImageServer
 import AnalyzeMeasures
-# import AnalyzeMeasures2
+# import AnalyzeMeasures2S
 # import AnalyzeFrame2
+from SocketsModule import SocketNamespace
 
 class CameraCapture(object):
 
@@ -64,6 +67,7 @@ class CameraCapture(object):
         else:
             # case of a video file
             self.isWebcam = False
+        
         # TODO: remove all commands related to imageProcessingEndpoint. It's irelevant
         self.imageProcessingEndpoint = imageProcessingEndpoint
         if imageProcessingParams == "":
@@ -83,7 +87,10 @@ class CameraCapture(object):
         self.monitor_id = monitorid
 
         if not self.onboardingMode: # live-stream mode, will use known boundries
-           self.__get_boundries()
+            self.__get_boundries()
+            # connect to server
+            socketIO = SocketIO('https://rstream-node.azurewebsites.net', 443, BaseNamespace)
+            self.ocrSocket = socketIO.define(SocketNamespace, '/ocr')
         
         if self.convertToGray:
             self.nbOfPreprocessingSteps +=1
@@ -146,7 +153,7 @@ class CameraCapture(object):
             AnalyzeMeasures.AnalyzeMeasures(frame, self.computervision_client)
             # AnalyzeMeasures2.AnalyzeFrame(frame, self.computervision_client)
         else:
-            AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client, self.boundries)
+            AnalyzeFrame.AnalyzeFrame(frame, self.computervision_client, self.boundries, self.ocrSocket)
             # AnalyzeFrame2.AnalyzeFrame(frame, self.computervision_client, self.boundries)
         return True
 
