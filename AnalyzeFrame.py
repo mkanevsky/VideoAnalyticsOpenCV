@@ -18,6 +18,103 @@ import math
 import numpy as np
 
 
+def distance(p1, p2):
+    xdis = (p1[0]-p2[0])**2
+    ydis = (p1[1]-p2[1])**2
+    return math.sqrt(xdis + ydis)
+
+
+def fix_corners(current_corners, last_corners):
+    fixed_corners = [[-1,-1], [-1,-1], [-1,-1], [-1,-1]]
+    for cp in current_corners:
+        min_dis = 500000000
+        curr_min = 0
+        for i in range(4):
+            dis = distance(last_corners[i], cp)
+            if dis < min_dis:
+                min_dis = dis
+                curr_min = i
+        fixed_corners[curr_min] = cp
+    for i in range(4):
+        if fixed_corners[i]==[-1,-1]:
+            fixed_corners[i] = last_corners[i]
+    return fixed_corners
+
+
+def order_points(pts):
+    rect = np.zeros((4, 2), dtype = "float32")
+    num_pts = np.array(pts)
+    s = num_pts.sum(axis = 1)
+    rect[0] = num_pts[np.argmin(s)]
+    rect[2] = num_pts[np.argmax(s)]
+    diff = np.diff(num_pts, axis = 1)
+    rect[1] = num_pts[np.argmin(diff)]
+    rect[3] = num_pts[np.argmax(diff)]
+    return rect
+
+
+def four_point_transform(image, pts):
+    # obtain a consistent order of the points and unpack them
+    # individually
+    rect = order_points(pts)
+    (tl, tr, br, bl) = rect
+    # compute the width of the new image, which will be the
+    # maximum distance between bottom-right and bottom-left
+    # x-coordiates or the top-right and top-left x-coordinates
+    widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+    widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+    maxWidth = max(int(widthA), int(widthB))
+    # compute the height of the new image, which will be the
+    # maximum distance between the top-right and bottom-right
+    # y-coordinates or the top-left and bottom-left y-coordinates
+    heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+    heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+    maxHeight = max(int(heightA), int(heightB))
+    # now that we have the dimensions of the new image, construct
+    # the set of destination points to obtain a "birds eye view",
+    # (i.e. top-down view) of the image, again specifying points
+    # in the top-left, top-right, bottom-right, and bottom-left
+    # order
+    dst = np.array([
+    [0, 0],
+    [maxWidth - 1, 0],
+    [maxWidth - 1, maxHeight - 1],
+    [0, maxHeight - 1]], dtype = "float32")
+    # compute the perspective transform matrix and then apply it
+    M = cv2.getPerspectiveTransform(rect, dst)
+    # copy = image.copy()
+    warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
+    # return the warped image
+    return warped
+
+
+def detect_markers(frame):
+    '''cv2.imshow('frame',frame)
+    if cv2.waitKey(100) & 0xFF == ord('q'):
+       pass
+    time.sleep(10)'''
+    
+    '''frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(64,64))
+    frame = clahe.apply(frame)'''
+    
+    dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_1000)
+    parameters =  cv2.aruco.DetectorParameters_create()
+    # print('detencting')
+    fixed_corners = []
+    markerCorners, markerIds, rejectedCandidates = cv2.aruco.detectMarkers(frame, dictionary, parameters=parameters)
+    clone = frame.copy()
+    for mc in markerCorners: # top left, top right, bottom right and bottom left.
+        # cv2.rectangle(clone, (mc[0][3][0], mc[0][3][1]), (mc[0][1][0], mc[0][1][1]), (0, 255, 0), 2)
+        fixed_corners.append((np.mean([mc[0][0][0], mc[0][1][0], mc[0][2][0], mc[0][3][0]]),np.mean([mc[0][0][1], mc[0][1][1], mc[0][2][1], mc[0][3][1]])))
+        
+    #cv2.imshow("Window", clone)
+    #cv2.waitKey(1)
+    #time.sleep(3)
+    return fixed_corners
+
+
 def create_areas(area_dict, img):
     s = img.shape
     height, width = s[0], s[1]
@@ -44,12 +141,12 @@ def transform_coords(coords, area):
 def transform_boundries(boundry_dict):
     fixed_dict = {}
     for key, value in boundry_dict.items():
-        fixed_value = [value[0][0]-10, value[1][0]+10, value[0][1]-10, value[1][1]+10]
+        fixed_value = [value[0][0]-5, value[1][0]+5, value[0][1]-5, value[1][1]+5]
         fixed_dict[key] = fixed_value
     return fixed_dict
     
 
-def create_bounded_output(readings, boundings, boundries, method = 1):
+def create_bounded_output(readings, boundings, boundries, method = 3):
     output_dict = {}
     for key in boundries.keys():
         for i in range(len(readings)):
@@ -63,7 +160,8 @@ def create_bounded_output(readings, boundings, boundries, method = 1):
                 if check_dot(boundings[i], boundries[key]):  # rectangle containing center point
                     output_dict[key] = readings[i]
         if key not in output_dict.keys():
-            output_dict[key] = None
+            output_dict[key] = "N/A"
+            # output_dict[key] = None
     return output_dict
 
 """
@@ -196,6 +294,21 @@ def get_digits(img, computervision_client):
 def AnalyzeFrame(frame, computervision_client, boundries, ocrsocket):
     frame = cv2.imdecode(np.frombuffer(frame, np.uint8), -1)
     
+    # Find ARuco corners:
+    new_corners = detect_markers(frame)
+    corners = [(529.0, 380.75), (157.5, 380.5), (604.75, 172.25), (101.25, 168.0)] #mon3
+    # corners = [(120.0, 404.0), (532.25, 386.0), (573.0, 124.0), (80.75, 113.5)] #mon4
+
+    # TODO: raise exception if more than one corner wasn't detected:
+    fixed_corners = fix_corners(new_corners, corners)
+    # pts = order_points(fixed_corners)
+    frame = four_point_transform(frame, fixed_corners)
+
+    # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    # rectKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,3))
+    # frame = cv2.morphologyEx(gray,cv2.MORPH_TOPHAT, gray)
+
     # TODO: get area_dicts from MOB/DB
     #areas_dict = {'side': [0, 1, 0.7, 0.9], 'bottom': [0.6, 0.9, 0.3, 0.7]} #will be an input later! #monitor 1
     areas_dict = {'side': [0.1, 0.9, 0.67, 0.92]} #will be an input later! #monitor 3
@@ -212,11 +325,17 @@ def AnalyzeFrame(frame, computervision_client, boundries, ocrsocket):
             readings[i] = item[0]
             boundings[i] = transform_coords(item[1], area)
             i = i + 1
-    boundry_dict = {i:[min(x[0],x[6]) -15,max(x[2],x[4]) +15 ,min(x[3],x[1]) -15,max(x[5],x[7]) + 15] for i,x in enumerate(boundings.values())}
-    boundry_temp_mon32 = {0: ((471.0, 129), (516.0, 165)), 1: ((464.0, 170), (533.0, 213)), 2: ((469.0, 222), (541.0, 244)), 3: ((469.0, 272), (508.0, 306)), 4: ((471.0, 315), (505.0, 351))}
-    boundry_temp_mon32 = {0: ((132, 316.0), (246, 345.0)), 1: ((449.0, 172.0), (509.0, 221.0)), 2: ((439.0, 230.0), (485.0, 269.0)), 3: ((435.0, 271.0), (483.0, 312.0))}
+    # boundry_dict = {i:[min(x[0],x[6]) -15,max(x[2],x[4]) +15 ,min(x[3],x[1]) -15,max(x[5],x[7]) + 15] for i,x in enumerate(boundings.values())}
+    # boundry_temp_mon32 = {0: ((471.0, 129), (516.0, 165)), 1: ((464.0, 170), (533.0, 213)), 2: ((469.0, 222), (541.0, 244)), 3: ((469.0, 272), (508.0, 306)), 4: ((471.0, 315), (505.0, 351))}
     
+    # MES-Setup inpurt by hand. TODO: get from API in the begining
+    boundry_temp_mon32 = {0: ((132, 316.0), (246, 345.0)), 1: ((449.0, 172.0), (509.0, 221.0)), 2: ((439.0, 230.0), (485.0, 269.0)), 3: ((435.0, 271.0), (483.0, 312.0))}
+    helka_dictionary = {0: [374.0, 18.0, 429.0, 18.0, 429.0, 51.0, 374.0, 52.0], 1: [370.0, 59.0, 419.0, 59.0, 417.0, 93.0, 369.0, 92.0], 2: [358.0, 96.0, 419.0, 92.0, 420.0, 128.0, 358.0, 122.0], 3: [34.0, 132.0, 197.0, 134.0, 196.0, 163.0, 33.0, 160.0]} #mon3
+    boundry_temp_mon32 = {0: ((365.0, 26.0), (379.0, 39.0)), 1: ((380.0, 17.0), (437.0, 53.0)), 2: ((375.0, 61.0), (425.0, 95.0)), 3: ((377.0, 96.0), (429.0, 131.0)), 4: ((58.0, 140.0), (160.0, 166.0)), 5: ((93.0, 164.0), (140.0, 177.0))}
+    temp_mon = {k:[[v[0],v[1]],[v[4],v[5]]] for k,v in helka_dictionary.items()} #translate dic to normal version
+
     output = create_bounded_output(readings, boundings, transform_boundries(boundry_temp_mon32), 3)
+    # output = create_bounded_output(readings, boundings, temp_mon, 3)
     # print(output)
 
     

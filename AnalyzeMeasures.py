@@ -19,6 +19,81 @@ import numpy as np
 import base64
 
 
+def order_points(pts):
+    rect = np.zeros((4, 2), dtype = "float32")
+    num_pts = np.array(pts)
+    s = num_pts.sum(axis = 1)
+    rect[0] = num_pts[np.argmin(s)]
+    rect[2] = num_pts[np.argmax(s)]
+    diff = np.diff(num_pts, axis = 1)
+    rect[1] = num_pts[np.argmin(diff)]
+    rect[3] = num_pts[np.argmax(diff)]
+    return rect
+
+
+def four_point_transform(image, pts):
+    # obtain a consistent order of the points and unpack them
+    # individually
+    rect = order_points(pts)
+    (tl, tr, br, bl) = rect
+    # compute the width of the new image, which will be the
+    # maximum distance between bottom-right and bottom-left
+    # x-coordiates or the top-right and top-left x-coordinates
+    widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+    widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+    maxWidth = max(int(widthA), int(widthB))
+    # compute the height of the new image, which will be the
+    # maximum distance between the top-right and bottom-right
+    # y-coordinates or the top-left and bottom-left y-coordinates
+    heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+    heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+    maxHeight = max(int(heightA), int(heightB))
+    # now that we have the dimensions of the new image, construct
+    # the set of destination points to obtain a "birds eye view",
+    # (i.e. top-down view) of the image, again specifying points
+    # in the top-left, top-right, bottom-right, and bottom-left
+    # order
+    dst = np.array([
+    [0, 0],
+    [maxWidth - 1, 0],
+    [maxWidth - 1, maxHeight - 1],
+    [0, maxHeight - 1]], dtype = "float32")
+    # compute the perspective transform matrix and then apply it
+    M = cv2.getPerspectiveTransform(rect, dst)
+    # copy = image.copy()
+    warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
+    # return the warped image
+    return warped
+
+
+def detect_markers(frame):
+    '''cv2.imshow('frame',frame)
+    if cv2.waitKey(100) & 0xFF == ord('q'):
+       pass
+    time.sleep(10)'''
+    
+    '''frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(64,64))
+    frame = clahe.apply(frame)'''
+    
+    dictionary = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_1000)
+    parameters =  cv2.aruco.DetectorParameters_create()
+    # print('detencting')
+    fixed_corners = []
+    markerCorners, markerIds, rejectedCandidates = cv2.aruco.detectMarkers(frame, dictionary, parameters=parameters)
+    clone = frame.copy()
+    for mc in markerCorners: # top left, top right, bottom right and bottom left.
+        # cv2.rectangle(clone, (mc[0][3][0], mc[0][3][1]), (mc[0][1][0], mc[0][1][1]), (0, 255, 0), 2)
+        fixed_corners.append((np.mean([mc[0][0][0], mc[0][1][0], mc[0][2][0], mc[0][3][0]]),np.mean([mc[0][0][1], mc[0][1][1], mc[0][2][1], mc[0][3][1]])))
+        
+    #cv2.imshow("Window", clone)
+    #cv2.waitKey(1)
+    #time.sleep(3)
+    return fixed_corners
+
+
+
 def sliding_window(image, step_size, window_size):
 	# slide a window across the image
   for y in range(0, image.shape[0], step_size):
@@ -64,8 +139,10 @@ def find_best_windows(computervision_client, warped_frame, num_of_windows=1):
       winH, winW = math.ceil(0.3*s[0]), s[1]
       step_size = math.ceil(s[0] / 10)
       best_score_h = 0
-      processed_frame_h = cv2.rectangle(warped_frame, (best_window_v[0], best_window_v[2]), (
-          best_window_v[1], best_window_v[3]), (0, 255, 0), -1)  # block best vertical area
+      if best_window_v:
+        processed_frame_h = cv2.rectangle(warped_frame, (best_window_v[0], best_window_v[2]), (best_window_v[1], best_window_v[3]), (0, 255, 0), -1)  # block best vertical area
+      else:
+        processed_frame_h = warped_frame
       for (x, y, window) in sliding_window(processed_frame_h, step_size, window_size=(winW, winH)):  # horizontal windows
         temp_results = get_digits_FBW(window, computervision_client)
         # filter all results smaller than min size
@@ -77,11 +154,10 @@ def find_best_windows(computervision_client, warped_frame, num_of_windows=1):
           best_window_h = [x, x + winW, y, y + winH]
     # areas_dict value format is: [y_down, y_up, x_left, x_right]
     final_result = []
-    final_result.append([best_window_v[2] / s[0], best_window_v[3] /
-                         s[0], best_window_v[0] / s[1], best_window_v[1] / s[1]])
+    if best_window_v:
+        final_result.append([best_window_v[2] / s[0], best_window_v[3] / s[0], best_window_v[0] / s[1], best_window_v[1] / s[1]])
     if best_window_h:
-        final_result.append([best_window_h[2] / s[0], best_window_h[3] /
-                             s[0], best_window_h[0] / s[1], best_window_h[1] / s[1]])
+        final_result.append([best_window_h[2] / s[0], best_window_h[3] / s[0], best_window_h[0] / s[1], best_window_h[1] / s[1]])
     return final_result
 
 
@@ -210,6 +286,12 @@ def AnalyzeMeasures(frame, computervision_client):
     areas = create_areas(areas_dict, frame)
     """
     # print(type(frame))
+
+    " TODO: detect markers here: "
+    corners = detect_markers(frame)
+    if len(corners) != 4:
+        print("NOT DETECTED 4 CORNERS!")
+    frame = four_point_transform(frame, corners)
 
     areas_of_intrest = find_best_windows(computervision_client, frame, 2) #find best windows
     areas_dict = {i:area for i,area in enumerate(areas_of_intrest)} #transform into dictionary of bounderies
